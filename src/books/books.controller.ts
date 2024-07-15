@@ -39,8 +39,9 @@ export class BooksController {
 
   constructor(private readonly bookService: BooksService) { }
 
+  @Public()
   @Post()
-  @Roles(['admin'])
+  //@Roles(['admin'])
   @ApiOperation({ summary: 'Create Book' })
   @ApiCreatedResponse({
     description: 'The book has been successfully created!',

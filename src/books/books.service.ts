@@ -17,7 +17,15 @@ export class BooksService {
   async create(createBookDto: CreateBookDto): Promise<Book> {
     const book = new Book();
     book.name = createBookDto.name;
-    book.author = createBookDto.author;
+    book.translator = createBookDto.translator;
+    book.category = createBookDto.category;
+    book.language = createBookDto.language;
+    book.numberOfPages = createBookDto.numberOfPages;
+    book.authorName = createBookDto.authorName;
+    book.authorId = createBookDto.authorId;
+    book.publisher = createBookDto.publisher;
+    book.publicationDate = createBookDto.publicationDate;
+    book.textToSpeech = createBookDto.textToSpeech;
     book.price = createBookDto.price;
 
     const result = this.booksRepository.save(book);

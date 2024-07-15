@@ -5,6 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
 // DTOs & Entities
+import { Author } from '@/authors/author.entity';
+import { AuthorsModule } from '@/authors/authors.module';
 import { Book } from '@/books/book.entity';
 import { BooksModule } from '@/books/books.module';
 
@@ -31,10 +33,11 @@ import { TimeoutInterceptor } from '@/common/Interceptors/timeout.interceptor';
         username: configService.get<string>('DATABASE_USERNAME'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [Book],
+        entities: [Author, Book],
         synchronize: true // remove in production
       })
     }),
+    AuthorsModule,
     BooksModule
   ],
   providers: [

@@ -32,6 +32,7 @@ async function bootstrap() {
     .setTitle(SWAGGER_TITLE)
     .setDescription(SWAGGER_DESCRIPTION)
     .setVersion(SWAGGER_VERSION)
+    .addTag('authors')
     .addTag('books')
     //.addBearerAuth()
     .build();
