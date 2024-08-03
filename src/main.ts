@@ -7,6 +7,9 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 // Modules
 import { AppModule } from '@/app.module';
 
+// Filters
+import { HttpExceptionFilter } from '@/common/filters/http-exception.filter';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -27,6 +30,7 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   const config = new DocumentBuilder()
     .setTitle(SWAGGER_TITLE)

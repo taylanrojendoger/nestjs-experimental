@@ -2,9 +2,9 @@
 import {
   CallHandler,
   ExecutionContext,
-  GatewayTimeoutException,
   Injectable,
   NestInterceptor,
+  RequestTimeoutException
 } from '@nestjs/common';
 
 // rxjs
@@ -19,7 +19,7 @@ export class TimeoutInterceptor implements NestInterceptor {
       timeout(30000),
       catchError((err) => {
         if (err instanceof TimeoutError) {
-          throw new GatewayTimeoutException('Gateway timeout has occurred');
+          throw new RequestTimeoutException('Gateway timeout has occurred');
         }
         return throwError(() => err);
       })
