@@ -1,40 +1,50 @@
 // TypeORM
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  VersionColumn
+} from 'typeorm';
 
 // Model
 import { Book } from '@/books/book.entity';
-
-// Swagger
-import { ApiProperty } from '@nestjs/swagger';
 
 @Entity({ name: 'Author' })
 export class Author {
 
   @PrimaryGeneratedColumn('uuid', { name: 'Id' })
-  id: number;
+  id: string;
 
-  @ApiProperty()
   @Column({ name: 'Name' })
   name: string;
 
-  @ApiProperty()
   @Column({ name: 'Nationality' })
   nationality: string;
 
-  @ApiProperty()
   @Column({ name: 'Address' })
   birthdate: Date;
 
-  @ApiProperty()
   @Column({
     name: 'Email',
     nullable: true
   })
   email: string;
 
-  @ApiProperty()
-  @Column("text", { name: 'Book', array: true })
+  @JoinColumn({ name: 'Books' })
   @OneToMany(() => Book, (book) => book.authorId)
   books: Book[];
+
+  @CreateDateColumn({ name: 'CreatedAt' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'UpdatedAt' })
+  updatedAt: Date;
+
+  @VersionColumn({ name: 'Version' })
+  version: number;
 
 }

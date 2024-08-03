@@ -1,9 +1,5 @@
 // Class Validator
-import { IsArray, IsDateString, IsEmail, IsOptional, IsString } from 'class-validator';
-import { Type } from 'class-transformer';
-
-// Model
-import { Book } from '@/books/book.entity';
+import { IsDateString, IsEmail, IsOptional, IsString } from 'class-validator';
 
 // Swagger
 import { ApiProperty } from '@nestjs/swagger';
@@ -26,10 +22,5 @@ export class CreateAuthorDto {
     @IsOptional()
     @IsEmail()
     readonly email?: string | null;
-
-    @ApiProperty({ description: 'Books written by the author' })
-    @IsArray()
-    @Type(() => Book)
-    readonly books: Book[];
 
 }

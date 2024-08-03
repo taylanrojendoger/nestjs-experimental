@@ -28,10 +28,6 @@ export class CreateBookDto {
     @IsInt()
     readonly numberOfPages: number;
 
-    @ApiProperty({ description: 'The author name of the book' })
-    @IsString()
-    readonly authorName: string;
-
     @ApiProperty({ description: 'The author id of the book' })
     @IsString()
     readonly authorId: string;

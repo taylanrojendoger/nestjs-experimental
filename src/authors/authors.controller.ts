@@ -7,7 +7,7 @@ import {
   Param,
   Post,
   ParseIntPipe,
-  UseGuards
+  ParseUUIDPipe
 } from '@nestjs/common';
 
 // Swagger
@@ -40,30 +40,29 @@ export class AuthorsController {
   constructor(private readonly authorsService: AuthorsService) { }
 
   @Public()
-  @Post()
   //@Roles(['admin'])
   @ApiOperation({ summary: 'Create Author' })
   @ApiCreatedResponse({
     description: 'The author has been successfully created!',
     type: String
   })
-  create(@Body() createAuthorDto: CreateAuthorDto): Promise<Author> {
+  @Post()
+  create(@Body() createAuthorDto: CreateAuthorDto): Promise<string> {
     return this.authorsService.create(createAuthorDto);
   }
 
   @Public()
-  @Get()
   @ApiOperation({ summary: 'Get All Authors' })
   @ApiOkResponse({
     type: Author,
     isArray: true
   })
+  @Get()
   findAll(): Promise<Author[]> {
     return this.authorsService.findAll();
   }
 
   @Public()
-  @Get(':id')
   @ApiOperation({ summary: 'Get Author' })
   @ApiOkResponse({
     description: 'The author has been successfully found!',
@@ -73,18 +72,20 @@ export class AuthorsController {
     description: 'The author could not found!',
     type: String
   })
-  findOne(@Param('id', new ParseIntPipe()) id: number): Promise<Author> {
+  @Get(':id')
+  findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<Author> {
     return this.authorsService.findOne(id);
   }
 
-  @Delete(':id')
+  @Public()
   @Roles(['admin'])
   @ApiOperation({ summary: 'Delete Author' })
   @ApiNoContentResponse({
     description: 'The author has been successfully deleted!',
     type: String
   })
-  delete(@Param('id', new ParseIntPipe()) id: number): void {
+  @Delete(':id')
+  delete(@Param('id', new ParseUUIDPipe()) id: string): void {
     this.authorsService.remove(id);
   }
 

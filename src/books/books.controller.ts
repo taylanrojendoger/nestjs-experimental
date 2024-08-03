@@ -4,10 +4,11 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Post,
-  ParseIntPipe,
-  UseGuards
+  ParseUUIDPipe
 } from '@nestjs/common';
 
 // Swagger
@@ -40,30 +41,29 @@ export class BooksController {
   constructor(private readonly bookService: BooksService) { }
 
   @Public()
-  @Post()
   //@Roles(['admin'])
   @ApiOperation({ summary: 'Create Book' })
   @ApiCreatedResponse({
     description: 'The book has been successfully created!',
     type: String
   })
-  create(@Body() createBookDto: CreateBookDto): Promise<Book> {
+  @Post()
+  create(@Body() createBookDto: CreateBookDto): Promise<string> {
     return this.bookService.create(createBookDto);
   }
 
   @Public()
-  @Get()
   @ApiOperation({ summary: 'Get All Books' })
   @ApiOkResponse({
     type: Book,
     isArray: true
   })
+  @Get()
   findAll(): Promise<Book[]> {
     return this.bookService.findAll();
   }
 
   @Public()
-  @Get(':id')
   @ApiOperation({ summary: 'Get Book' })
   @ApiOkResponse({
     description: 'The book has been successfully found!',
@@ -73,18 +73,21 @@ export class BooksController {
     description: 'The book could not found!',
     type: String
   })
-  findOne(@Param('id', new ParseIntPipe()) id: number): Promise<Book> {
+  @Get(':id')
+  findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<Book> {
     return this.bookService.findOne(id);
   }
 
-  @Delete(':id')
-  @Roles(['admin'])
+  @Public()
+  //@Roles(['admin'])
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete Book' })
   @ApiNoContentResponse({
     description: 'The book has been successfully deleted!',
     type: String
   })
-  delete(@Param('id', new ParseIntPipe()) id: number): void {
+  @Delete(':id')
+  delete(@Param('id', new ParseUUIDPipe()) id: string): void {
     this.bookService.remove(id);
   }
 

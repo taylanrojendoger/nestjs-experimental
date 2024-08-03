@@ -12,7 +12,6 @@ import { Author } from '@/authors/author.entity';
 @Module({
     imports: [TypeOrmModule.forFeature([Author])],
     providers: [AuthorsService],
-    controllers: [AuthorsController],
-    //exports: [TypeOrmModule] // If Repository will be used outside of this module
+    controllers: [AuthorsController]
 })
 export class AuthorsModule { }

@@ -12,7 +12,6 @@ import { Book } from '@/books/book.entity';
 @Module({
     imports: [TypeOrmModule.forFeature([Book])],
     providers: [BooksService],
-    controllers: [BooksController],
-    //exports: [TypeOrmModule] // If Repository will be used outside of this module
+    controllers: [BooksController]
 })
 export class BooksModule { }
