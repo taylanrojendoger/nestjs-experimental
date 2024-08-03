@@ -3,7 +3,7 @@ import {
     ArgumentsHost,
     Catch,
     ExceptionFilter,
-    HttpException,
+    HttpException
 } from '@nestjs/common';
 
 @Catch(HttpException)
@@ -15,12 +15,11 @@ export class HttpExceptionFilter implements ExceptionFilter<HttpException> {
         const request = ctx.getRequest();
         const statusCode = exception.getStatus();
 
-        // console.log('in http exception filter!');
         response.status(statusCode).json({
-            statusCode,
-            timestamp: new Date().toISOString(),
+            message: exception.message,
             path: request.url,
+            timestamp: new Date().toISOString()
         });
     }
-    
+
 }
