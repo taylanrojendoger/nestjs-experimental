@@ -1,8 +1,9 @@
 // NestJS
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 // DTOs & Entities
 import { Author } from '@/authors/author.entity';
@@ -15,7 +16,10 @@ import { AuthGuard } from '@/common/guards/auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 
 // Interceptors
-import { TimeoutInterceptor } from '@/common/Interceptors/timeout.interceptor';
+import { TimeoutInterceptor } from '@/common/interceptors/timeout.interceptor';
+
+// Middleware
+import { LoggerMiddleware } from '@/common/middleware/logger.middleware';
 
 @Module({
   imports: [
@@ -37,6 +41,16 @@ import { TimeoutInterceptor } from '@/common/Interceptors/timeout.interceptor';
         synchronize: true // remove in production
       })
     }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => [
+        {
+          ttl: configService.get<number>('THROTTLE_TTL'),
+          limit: configService.get<number>('THROTTLE_LIMIT')
+        }
+      ]
+    }),
     AuthorsModule,
     BooksModule
   ],
@@ -50,9 +64,19 @@ import { TimeoutInterceptor } from '@/common/Interceptors/timeout.interceptor';
       useClass: RolesGuard,
     },
     {
-      provide: APP_INTERCEPTOR,
-      useClass: TimeoutInterceptor,
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TimeoutInterceptor
+    }
   ]
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes('*');
+  }
+}
