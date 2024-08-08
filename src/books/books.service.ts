@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 
 // DTOs & Entities
 import { CreateBookDto } from '@/books/dto/create-book.dto';
+import { UpdateBookDto } from '@/books/dto/update-book.dto';
 import { Book } from '@/books/book.entity';
 
 @Injectable()
@@ -18,10 +19,10 @@ export class BooksService {
 
   async checkExistingBook(createBookDto: CreateBookDto): Promise<Book | null> {
     const existingBook = await this.booksRepository
-      .createQueryBuilder("book")
-      .leftJoinAndSelect("book.authorId", "author")
-      .where("book.name = :name", { name: createBookDto.name })
-      .andWhere("book.authorId = :authorId", { authorId: createBookDto.authorId })
+      .createQueryBuilder('book')
+      .leftJoinAndSelect('book.authorId', 'author')
+      .where('book.name = :name', { name: createBookDto.name })
+      .andWhere('book.authorId = :authorId', { authorId: createBookDto.authorId })
       .getOne()
       .catch(err => {
         this.logger.error(`FIND_EXISTING_BOOK:${createBookDto.name}:${err}`);
@@ -34,7 +35,7 @@ export class BooksService {
     const existingBook = await this.checkExistingBook(createBookDto);
 
     if (existingBook) {
-      throw new HttpException(`Book already exists!`, HttpStatus.CONFLICT);
+      throw new HttpException('Book already exists!', HttpStatus.CONFLICT);
     }
 
     const book = new Book();
@@ -54,11 +55,11 @@ export class BooksService {
     });
 
     if (result) {
-      this.logger.log(`POST:BOOK:${result.id}`);
+      this.logger.debug(`POST:BOOK:${result.id}`);
       return result.id;
     }
 
-    throw new HttpException(`Book could not be created!`, HttpStatus.INTERNAL_SERVER_ERROR);
+    throw new HttpException('Book could not be created!', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   async findAll(): Promise<Book[] | []> {
@@ -67,7 +68,7 @@ export class BooksService {
     });
 
     if (books && books.length > 0) {
-      this.logger.log('GET:BOOKS:FULFILLED');
+      this.logger.debug('GET:BOOKS:FULFILLED');
       return books;
     }
 
@@ -80,11 +81,38 @@ export class BooksService {
     });
 
     if (book) {
-      this.logger.log(`GET:BOOK:${book.id}`);
+      this.logger.debug(`GET:BOOK:${book.id}`);
       return book;
     }
 
-    throw new HttpException(`Book not found!`, HttpStatus.NOT_FOUND);
+    throw new HttpException('Book not found!', HttpStatus.NOT_FOUND);
+  }
+
+  async update(id: string, updateBookDto: UpdateBookDto): Promise<void> {
+    const book = await this.findOne(id).catch(err => {
+      this.logger.error(`PUT:BOOK:${id}:${err}`);
+    });
+
+    if (book) {
+      book.name = updateBookDto.name;
+      book.translator = updateBookDto.translator;
+      book.category = updateBookDto.category;
+      book.language = updateBookDto.language;
+      book.numberOfPages = updateBookDto.numberOfPages;
+      book.authorId = updateBookDto.authorId;
+      book.publisher = updateBookDto.publisher;
+      book.publicationDate = updateBookDto.publicationDate;
+      book.textToSpeech = updateBookDto.textToSpeech;
+      book.price = updateBookDto.price;
+
+      const result = await this.booksRepository.save(book).catch(err => {
+        this.logger.error(`PUT:BOOK:${id}:${err}`);
+      });
+
+      if (result) {
+        this.logger.debug(`PUT:BOOK:${id}`);
+      }
+    }
   }
 
   async remove(id: string): Promise<void> {
@@ -93,10 +121,10 @@ export class BooksService {
     });
 
     if (result && result.affected && result.affected > 0) {
-      this.logger.log(`DELETE:BOOK:${id}`);
+      this.logger.debug(`DELETE:BOOK:${id}`);
     }
 
-    throw new HttpException(`Book not found!`, HttpStatus.NOT_FOUND);
+    throw new HttpException('Book not found!', HttpStatus.NOT_FOUND);
   }
 
 }

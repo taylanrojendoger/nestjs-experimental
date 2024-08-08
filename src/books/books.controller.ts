@@ -7,8 +7,10 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
   Post,
-  ParseUUIDPipe
+  Put
 } from '@nestjs/common';
 
 // Swagger
@@ -27,6 +29,7 @@ import { BooksService } from '@/books/books.service';
 
 // DTOs & Entities
 import { CreateBookDto } from '@/books/dto/create-book.dto';
+import { UpdateBookDto } from '@/books/dto/update-book.dto';
 import { Book } from '@/books/book.entity';
 
 // Decorators
@@ -76,6 +79,16 @@ export class BooksController {
   @Get(':id')
   findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<Book> {
     return this.bookService.findOne(id);
+  }
+
+  @Public()
+  @ApiOperation({ summary: 'Update Book' })
+  @ApiOkResponse({
+    description: 'The book has been successfully updated!'
+  })
+  @Put(':id')
+  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateBookDto: UpdateBookDto): Promise<void> {
+    return this.bookService.update(id, updateBookDto);
   }
 
   @Public()

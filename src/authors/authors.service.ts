@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 
 // DTOs & Entities
 import { CreateAuthorDto } from '@/authors/dto/create-author.dto';
+import { UpdateAuthorDto } from '@/authors/dto/update-author.dto';
 import { Author } from '@/authors/author.entity';
 
 @Injectable()
@@ -18,11 +19,11 @@ export class AuthorsService {
 
   async checkExistingAuthor(createAuthorDto: CreateAuthorDto): Promise<Author | null> {
     const existingAuthor = await this.authorsRepository
-      .createQueryBuilder("author")
-      .where("author.name = :name", { name: createAuthorDto.name })
+      .createQueryBuilder('author')
+      .where('author.name = :name', { name: createAuthorDto.name })
       .getOne()
       .catch(err => {
-        console.error(`FIND_EXISTING_AUTHOR:${createAuthorDto.name}:${err}`);
+        this.logger.error(`FIND_EXISTING_AUTHOR:${createAuthorDto.name}:${err}`);
       });
 
     return existingAuthor || null;
@@ -32,7 +33,7 @@ export class AuthorsService {
     const existingAuthor = await this.checkExistingAuthor(createAuthorDto);
 
     if (existingAuthor) {
-      throw new HttpException(`Author already exists!`, HttpStatus.CONFLICT);
+      throw new HttpException('Author already exists!', HttpStatus.CONFLICT);
     }
 
     const author = new Author();
@@ -40,18 +41,17 @@ export class AuthorsService {
     author.nationality = createAuthorDto.nationality;
     author.birthdate = createAuthorDto.birthdate;
     author.email = createAuthorDto.email;
-    author.books = [];
 
     const result = await this.authorsRepository.save(author).catch(err => {
-      this.logger.error(`POST:AUTHOR:${CreateAuthorDto.name}:${err}`);
+      this.logger.error(`POST:AUTHOR:${createAuthorDto.name}:${err}`);
     });
 
     if (result) {
-      this.logger.log(`POST:AUTHOR:${result.id}`);
+      this.logger.debug(`POST:AUTHOR:${result.id}`);
       return result.id;
     }
 
-    throw new HttpException(`Author could not be created!`, HttpStatus.INTERNAL_SERVER_ERROR);
+    throw new HttpException('Author could not be created!', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   async findAll(): Promise<Author[] | []> {
@@ -60,7 +60,7 @@ export class AuthorsService {
     });
 
     if (authors && authors.length > 0) {
-      this.logger.log('GET:AUTHORS:FULFILLED');
+      this.logger.debug('GET:AUTHORS:FULFILLED');
       return authors;
     }
 
@@ -73,11 +73,32 @@ export class AuthorsService {
     });
 
     if (author) {
-      this.logger.log(`GET:AUTHOR:${author.id}`);
+      this.logger.debug(`GET:AUTHOR:${author.id}`);
       return author;
     }
 
-    throw new HttpException(`Author not found!`, HttpStatus.NOT_FOUND);
+    throw new HttpException('Author not found!', HttpStatus.NOT_FOUND);
+  }
+
+  async update(id: string, updateAuthorDto: UpdateAuthorDto): Promise<void> {
+    const author = await this.findOne(id).catch(err => {
+      this.logger.error(`PUT:AUTHOR:${id}:${err}`);
+    });
+
+    if (author) {
+      author.name = updateAuthorDto.name;
+      author.nationality = updateAuthorDto.nationality;
+      author.birthdate = updateAuthorDto.birthdate;
+      author.email = updateAuthorDto.email;
+
+      const result = await this.authorsRepository.save(author).catch(err => {
+        this.logger.error(`PUT:AUTHOR:${id}:${err}`);
+      });
+
+      if (result) {
+        this.logger.debug(`PUT:AUTHOR:${id}`);
+      }
+    }
   }
 
   async remove(id: string): Promise<void> {
@@ -86,10 +107,10 @@ export class AuthorsService {
     });
 
     if (result && result.affected && result.affected > 0) {
-      this.logger.log(`DELETE:AUTHOR:${id}`);
+      this.logger.debug(`DELETE:AUTHOR:${id}`);
     }
 
-    throw new HttpException(`Author not found!`, HttpStatus.NOT_FOUND);
+    throw new HttpException('Author not found!', HttpStatus.NOT_FOUND);
   }
 
 }

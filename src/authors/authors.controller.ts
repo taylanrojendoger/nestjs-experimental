@@ -5,9 +5,10 @@ import {
   Delete,
   Get,
   Param,
-  Post,
   ParseIntPipe,
-  ParseUUIDPipe
+  ParseUUIDPipe,
+  Post,
+  Put
 } from '@nestjs/common';
 
 // Swagger
@@ -26,6 +27,7 @@ import { AuthorsService } from '@/authors/authors.service';
 
 // DTOs & Entities
 import { CreateAuthorDto } from '@/authors/dto/create-author.dto';
+import { UpdateAuthorDto } from '@/authors/dto/update-author.dto';
 import { Author } from '@/authors/author.entity';
 
 // Decorators
@@ -75,6 +77,16 @@ export class AuthorsController {
   @Get(':id')
   findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<Author> {
     return this.authorsService.findOne(id);
+  }
+
+  @Public()
+  @ApiOperation({ summary: 'Update Author' })
+  @ApiOkResponse({
+    description: 'The author has been successfully updated!'
+  })
+  @Put(':id')
+  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateAuthorDto: UpdateAuthorDto): Promise<void> {
+    return this.authorsService.update(id, updateAuthorDto);
   }
 
   @Public()
