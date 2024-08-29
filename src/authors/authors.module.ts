@@ -2,6 +2,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+// Cache
+import { RedisModule } from 'src/redis/redis.module';
+
 // Services
 import { AuthorsService } from '@/authors/authors.service';
 
@@ -10,7 +13,10 @@ import { AuthorsController } from '@/authors/authors.controller';
 import { Author } from '@/authors/author.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Author])],
+    imports: [
+        RedisModule,
+        TypeOrmModule.forFeature([Author])
+    ],
     providers: [AuthorsService],
     controllers: [AuthorsController]
 })

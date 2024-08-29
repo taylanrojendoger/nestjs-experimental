@@ -1,6 +1,7 @@
 // NestJS
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+//import { RedisService } from 'nestjs-redis';
 
 // TypeORM
 import { Repository } from 'typeorm';
@@ -10,12 +11,17 @@ import { CreateBookDto } from '@/books/dto/create-book.dto';
 import { UpdateBookDto } from '@/books/dto/update-book.dto';
 import { Book } from '@/books/book.entity';
 
+
+import { Cache } from 'cache-manager';
+import { RedisService } from 'src/redis/redis.service';
+
 @Injectable()
 export class BooksService {
 
   private readonly logger = new Logger(BooksService.name);
 
-  constructor(@InjectRepository(Book) private booksRepository: Repository<Book>) { }
+  constructor(@InjectRepository(Book) private booksRepository: Repository<Book>,
+    private redisService: RedisService) { }
 
   async checkExistingBook(createBookDto: CreateBookDto): Promise<Book | null> {
     const existingBook = await this.booksRepository
@@ -63,12 +69,19 @@ export class BooksService {
   }
 
   async findAll(): Promise<Book[] | []> {
+    const cachedBooks: Book[] = await this.redisService.get('/api/v1/books') as Book[];
+
+    if (cachedBooks) {
+      return cachedBooks;
+    }
+
     const books = await this.booksRepository.find().catch(err => {
       this.logger.error(`GET:BOOKS:${err}`);
     });
 
     if (books && books.length > 0) {
       this.logger.debug('GET:BOOKS:FULFILLED');
+      await this.redisService.set('/api/v1/books', books);
       return books;
     }
 
@@ -76,12 +89,19 @@ export class BooksService {
   }
 
   async findOne(id: string): Promise<Book> {
+    const cachedBook: Book = await this.redisService.get(`/api/v1/books/${id}`) as Book;
+
+    if (cachedBook) {
+      return cachedBook;
+    }
+
     const book = await this.booksRepository.findOneBy({ id }).catch(err => {
       this.logger.error(`GET:BOOK:${id}:${err}`);
     });
 
     if (book) {
       this.logger.debug(`GET:BOOK:${book.id}`);
+      await this.redisService.set(`/api/v1/books/${id}`, book);
       return book;
     }
 

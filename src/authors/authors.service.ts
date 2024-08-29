@@ -5,6 +5,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 // TypeORM
 import { Repository } from 'typeorm';
 
+// Services
+import { RedisService } from 'src/redis/redis.service';
+
 // DTOs & Entities
 import { CreateAuthorDto } from '@/authors/dto/create-author.dto';
 import { UpdateAuthorDto } from '@/authors/dto/update-author.dto';
@@ -15,7 +18,10 @@ export class AuthorsService {
 
   private readonly logger = new Logger(AuthorsService.name);
 
-  constructor(@InjectRepository(Author) private authorsRepository: Repository<Author>) { }
+  constructor(
+    @InjectRepository(Author) private authorsRepository: Repository<Author>,
+    private redisService: RedisService
+  ) { }
 
   async checkExistingAuthor(createAuthorDto: CreateAuthorDto): Promise<Author | null> {
     const existingAuthor = await this.authorsRepository
@@ -55,12 +61,19 @@ export class AuthorsService {
   }
 
   async findAll(): Promise<Author[] | []> {
+    const cachedAuthors: Author[] = await this.redisService.get('/api/v1/authors') as Author[];
+
+    if (cachedAuthors) {
+      return cachedAuthors;
+    }
+
     const authors = await this.authorsRepository.find().catch(err => {
       this.logger.error(`GET:AUTHORS:${err}`);
     });
 
     if (authors && authors.length > 0) {
       this.logger.debug('GET:AUTHORS:FULFILLED');
+      await this.redisService.set('/api/v1/authors', authors);
       return authors;
     }
 
@@ -68,12 +81,19 @@ export class AuthorsService {
   }
 
   async findOne(id: string): Promise<Author> {
+    const cachedAuthor: Author = await this.redisService.get(`/api/v1/authors/${id}`) as Author;
+
+    if (cachedAuthor) {
+      return cachedAuthor;
+    }
+
     const author = await this.authorsRepository.findOneBy({ id }).catch(err => {
       this.logger.error(`GET:AUTHOR:${id}:${err}`);
     });
 
     if (author) {
       this.logger.debug(`GET:AUTHOR:${author.id}`);
+      await this.redisService.set(`/api/v1/authors/${id}`, author);
       return author;
     }
 

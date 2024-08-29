@@ -1,6 +1,6 @@
 // NestJS
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -17,6 +17,7 @@ import { RolesGuard } from '@/common/guards/roles.guard';
 
 // Interceptors
 import { TimeoutInterceptor } from '@/common/interceptors/timeout.interceptor';
+// import { HttpCacheInterceptor } from '@/common/interceptors/http-cache.interceptor';
 
 // Middleware
 import { LoggerMiddleware } from '@/common/middleware/logger.middleware';
@@ -33,7 +34,7 @@ import { LoggerMiddleware } from '@/common/middleware/logger.middleware';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get<string>('DATABASE_HOST'),
-        port: configService.get<number>('DATABASE_PORT') || 5432,
+        port: configService.get<number>('DATABASE_PORT'),
         username: configService.get<string>('DATABASE_USERNAME'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
@@ -57,11 +58,11 @@ import { LoggerMiddleware } from '@/common/middleware/logger.middleware';
   providers: [
     {
       provide: APP_GUARD,
-      useClass: AuthGuard,
+      useClass: AuthGuard
     },
     {
       provide: APP_GUARD,
-      useClass: RolesGuard,
+      useClass: RolesGuard
     },
     {
       provide: APP_GUARD,
@@ -70,7 +71,13 @@ import { LoggerMiddleware } from '@/common/middleware/logger.middleware';
     {
       provide: APP_INTERCEPTOR,
       useClass: TimeoutInterceptor
-    }
+    },
+    /* 
+      {
+        provide: APP_INTERCEPTOR,
+        useClass: HttpCacheInterceptor
+      }
+    */
   ]
 })
 export class AppModule implements NestModule {
