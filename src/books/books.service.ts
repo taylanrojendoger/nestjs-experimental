@@ -1,34 +1,36 @@
 // NestJS
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-//import { RedisService } from 'nestjs-redis';
 
 // TypeORM
 import { Repository } from 'typeorm';
+
+// Services
+import { AuthorsService } from '@/authors/authors.service';
+import { RedisService } from 'src/redis/redis.service';
 
 // DTOs & Entities
 import { CreateBookDto } from '@/books/dto/create-book.dto';
 import { UpdateBookDto } from '@/books/dto/update-book.dto';
 import { Book } from '@/books/book.entity';
 
-
-import { Cache } from 'cache-manager';
-import { RedisService } from 'src/redis/redis.service';
-
 @Injectable()
 export class BooksService {
 
   private readonly logger = new Logger(BooksService.name);
 
-  constructor(@InjectRepository(Book) private booksRepository: Repository<Book>,
-    private redisService: RedisService) { }
+  constructor(
+    @InjectRepository(Book) private booksRepository: Repository<Book>,
+    private authorService: AuthorsService,
+    private redisService: RedisService
+  ) { }
 
   async checkExistingBook(createBookDto: CreateBookDto): Promise<Book | null> {
     const existingBook = await this.booksRepository
       .createQueryBuilder('book')
-      .leftJoinAndSelect('book.authorId', 'author')
+      .leftJoinAndSelect('book.author', 'author')
       .where('book.name = :name', { name: createBookDto.name })
-      .andWhere('book.authorId = :authorId', { authorId: createBookDto.authorId })
+      .andWhere('book.author = :authorId', { authorId: createBookDto.authorId })
       .getOne()
       .catch(err => {
         this.logger.error(`FIND_EXISTING_BOOK:${createBookDto.name}:${err}`);
@@ -44,13 +46,15 @@ export class BooksService {
       throw new HttpException('Book already exists!', HttpStatus.CONFLICT);
     }
 
+    const author = await this.authorService.getAuthorById(createBookDto.authorId);
+
     const book = new Book();
     book.name = createBookDto.name;
     book.translator = createBookDto.translator;
     book.category = createBookDto.category;
     book.language = createBookDto.language;
     book.numberOfPages = createBookDto.numberOfPages;
-    book.authorId = createBookDto.authorId;
+    book.author = author;
     book.publisher = createBookDto.publisher;
     book.publicationDate = createBookDto.publicationDate;
     book.textToSpeech = createBookDto.textToSpeech;
@@ -114,12 +118,14 @@ export class BooksService {
     });
 
     if (book) {
+      const author = await this.authorService.getAuthorById(updateBookDto.authorId);
+
       book.name = updateBookDto.name;
       book.translator = updateBookDto.translator;
       book.category = updateBookDto.category;
       book.language = updateBookDto.language;
       book.numberOfPages = updateBookDto.numberOfPages;
-      book.authorId = updateBookDto.authorId;
+      book.author = author;
       book.publisher = updateBookDto.publisher;
       book.publicationDate = updateBookDto.publicationDate;
       book.textToSpeech = updateBookDto.textToSpeech;

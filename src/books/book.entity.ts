@@ -41,8 +41,8 @@ export class Book {
   numberOfPages: number;
 
   @ManyToOne(() => Author, (author) => author.books)
-  @JoinColumn({ name: "Author" })
-  authorId: string;
+  @JoinColumn({ name: "AuthorId" })
+  author: Author;
 
   @Column({ name: 'Publisher' })
   publisher: string;

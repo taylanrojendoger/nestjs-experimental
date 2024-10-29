@@ -23,6 +23,19 @@ export class AuthorsService {
     private redisService: RedisService
   ) { }
 
+  async getAuthorById(id: string): Promise<Author | null> {
+    const author = await this.authorsRepository.findOneBy({ id }).catch(err => {
+      this.logger.error(`GET:AUTHOR:${id}:${err}`);
+    });
+
+    if (author) {
+      this.logger.debug(`GET:AUTHOR:${id}`);
+      return author;
+    }
+
+    return null;
+  }
+
   async checkExistingAuthor(createAuthorDto: CreateAuthorDto): Promise<Author | null> {
     const existingAuthor = await this.authorsRepository
       .createQueryBuilder('author')

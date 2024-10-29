@@ -2,7 +2,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// Cache
+// Modules
 import { RedisModule } from 'src/redis/redis.module';
 
 // Services
@@ -18,6 +18,7 @@ import { Author } from '@/authors/author.entity';
         TypeOrmModule.forFeature([Author])
     ],
     providers: [AuthorsService],
+    exports: [AuthorsService],
     controllers: [AuthorsController]
 })
 export class AuthorsModule { }

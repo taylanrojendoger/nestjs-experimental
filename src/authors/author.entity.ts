@@ -3,7 +3,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -34,8 +33,7 @@ export class Author {
   })
   email: string;
 
-  @JoinColumn({ name: 'Books' })
-  @OneToMany(() => Book, (book) => book.authorId)
+  @OneToMany(() => Book, (book) => book.author)
   books: Book[];
 
   @CreateDateColumn({ name: 'CreatedAt' })
